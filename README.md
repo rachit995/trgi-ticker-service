@@ -1,1 +1,1 @@
-# trgi-ticker-service
+# trgi-ticker-service.
