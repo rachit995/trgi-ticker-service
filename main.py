@@ -3,6 +3,7 @@ import requests
 import json
 import socket
 import datetime
+from decimal import Decimal
 
 hostname = socket.gethostname()
 VERSION = "0.1.1"
@@ -66,13 +67,13 @@ def get_token_status(contract_address):
     start_pos = data.rfind(">", 0, end_pos) + 1
     if (start_pos < 1):
         return {}
-    burn_fee = data[start_pos:end_pos].strip('\n ')
+    burn_fee = Decimal(data[start_pos:end_pos].strip('\n ')) / (Decimal(10) ** 9) # convert to gwei unit
     
     print(market_cap, ',', holders, ',', burn_fee)
     return {
         "market_cap": market_cap,
         "holders": holders,
-        "burned": burn_fee
+        "burned": f"{burn_fee:,}"
     }
 
 @app.get("/")
