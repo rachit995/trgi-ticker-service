@@ -29,10 +29,8 @@ async def root():
 
 @app.get("/ticker")
 async def ticker():
-    current = get_current_price("the-real-golden-inu", "eth")
-    current_eth = get_current_price("ethereum")
-    last = format(float(current_eth) * float(current), PRECISION)
+    current = get_current_price("the-real-golden-inu")
     return {
-        "last": last,
+        "last": current,
         "timestamp": datetime.datetime.now()
     }
