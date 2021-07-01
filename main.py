@@ -8,6 +8,7 @@ hostname = socket.gethostname()
 VERSION = "0.1.1"
 PRECISION = ".20f"
 COIN_ID = "the-real-golden-inu"
+CONTRACT_ADDRESS = "0xb5db7640182042a150ccdb386291f08f23b77a96"
 
 app = FastAPI()
 
@@ -21,6 +22,58 @@ def get_current_price(coin, wrt="usd"):
     response = requests.request("GET", url)
     data = json.loads(response.text)
     return format(data["market_data"]["current_price"][wrt], PRECISION)
+
+def get_token_status(contract_address):
+    url = "https://bscscan.com/token/" + contract_address + "#readContract"
+    response = requests.request("GET", url)
+    data = response.text
+    # marekt caps
+    start_pos = data.find("Market Cap")
+    if (start_pos < 0):
+        return {}
+    start_pos = data.find("pricebutton", start_pos)
+    if (start_pos < 0):
+        return {}
+    start_pos = data.find(">", start_pos) + 1
+    if (start_pos < 1):
+        return {}
+    end_pos = data.find("<", start_pos)
+    if (end_pos < 0):
+        return {}
+    market_cap = data[start_pos:end_pos].strip('\n ')
+    # holders
+    start_pos = data.find("Holders:")
+    if (start_pos < 0):
+        return {}
+    end_pos = data.find("addresses", start_pos)
+    if (end_pos < 0):
+        return {}
+    start_pos = data.rfind('>', 0, end_pos) + 1
+    holders = data[start_pos:end_pos].strip().replace(",", "")
+    # burned amount
+    url = "https://bscscan.com/readContract?m=normal&a=" + contract_address + "&v=" + contract_address
+    response = requests.request("GET", url)
+    data = response.text
+    start_pos = data.find("_burnFee")
+    if (start_pos < 0):
+        return {}
+    start_pos = data.find("form-group", start_pos)
+    if (start_pos < 0):
+        return {}
+    start_pos = data.find(">", start_pos) + 1
+    if (start_pos < 1):
+        return {}
+    end_pos = data.find("<", start_pos)
+    if (end_pos < 0):
+        return {}
+    burn_fee = data[start_pos:end_pos].strip('\n ')
+    
+    print(market_cap, ',', holders)
+    return {
+        "market_cap": market_cap,
+        "holders": holders,
+        "burned": burn_fee
+    }
 
 @app.get("/")
 async def root():
@@ -38,3 +91,13 @@ async def ticker():
         "last": current,
         "timestamp": datetime.datetime.now()
     }
+
+
+@app.get("/summary")
+async def summary():
+    status = get_token_status(CONTRACT_ADDRESS)
+    print(status)
+    status.update({
+        "timestamp": datetime.datetime.now()
+    })
+    return status
