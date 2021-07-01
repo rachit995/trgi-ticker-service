@@ -2,12 +2,20 @@ from fastapi import FastAPI
 import requests
 import json
 import socket
+import datetime
 
 hostname = socket.gethostname()
 VERSION = "0.1.1"
 PRECISION = ".20f"
 
 app = FastAPI()
+
+
+def get_current_price(coin, wrt="usd"):
+    url = "https://api.coingecko.com/api/v3/coins/" + coin
+    response = requests.request("GET", url)
+    data = json.loads(response.text)
+    return format(data["tickers"][0]["converted_last"][wrt], PRECISION)
 
 
 @app.get("/")
@@ -21,9 +29,10 @@ async def root():
 
 @app.get("/ticker")
 async def ticker():
-    url = "https://api.coingecko.com/api/v3/coins/the-real-golden-inu"
-    response = requests.request("GET", url)
-    data = json.loads(response.text)
-    current = 0
-    current = format(data["tickers"][0]["converted_last"]["usd"], PRECISION)
-    return {"current": current}
+    current = get_current_price("the-real-golden-inu", "eth")
+    current_eth = get_current_price("ethereum")
+    last = format(float(current_eth) * float(current), PRECISION)
+    return {
+        "last": last,
+        "timestamp": datetime.datetime.now()
+    }
