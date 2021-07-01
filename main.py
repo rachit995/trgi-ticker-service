@@ -54,21 +54,21 @@ def get_token_status(contract_address):
     url = "https://bscscan.com/readContract?m=normal&a=" + contract_address + "&v=" + contract_address
     response = requests.request("GET", url)
     data = response.text
-    start_pos = data.find("_burnFee")
+    start_pos = data.find("totalBurn")
     if (start_pos < 0):
         return {}
     start_pos = data.find("form-group", start_pos)
     if (start_pos < 0):
         return {}
-    start_pos = data.find(">", start_pos) + 1
-    if (start_pos < 1):
-        return {}
-    end_pos = data.find("<", start_pos)
+    end_pos = data.find("</a>", start_pos)
     if (end_pos < 0):
+        return {}
+    start_pos = data.rfind(">", 0, end_pos) + 1
+    if (start_pos < 1):
         return {}
     burn_fee = data[start_pos:end_pos].strip('\n ')
     
-    print(market_cap, ',', holders)
+    print(market_cap, ',', holders, ',', burn_fee)
     return {
         "market_cap": market_cap,
         "holders": holders,
