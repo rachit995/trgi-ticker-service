@@ -7,16 +7,20 @@ import datetime
 hostname = socket.gethostname()
 VERSION = "0.1.1"
 PRECISION = ".20f"
+COIN_ID = "the-real-golden-inu"
 
 app = FastAPI()
 
 
 def get_current_price(coin, wrt="usd"):
-    url = "https://api.coingecko.com/api/v3/coins/" + coin
+    # url = "https://api.coingecko.com/api/v3/coins/" + coin
+    # response = requests.request("GET", url)
+    # data = json.loads(response.text)
+    # return format(data["tickers"][0]["converted_last"][wrt], PRECISION)
+    url = "https://api.coingecko.com/api/v3/coins/" + coin + "?market_data=true"
     response = requests.request("GET", url)
     data = json.loads(response.text)
-    return format(data["tickers"][0]["converted_last"][wrt], PRECISION)
-
+    return format(data["market_data"]["current_price"][wrt], PRECISION)
 
 @app.get("/")
 async def root():
