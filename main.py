@@ -51,6 +51,17 @@ def get_token_status(contract_address):
         return {}
     start_pos = data.rfind('>', 0, end_pos) + 1
     holders = data[start_pos:end_pos].strip().replace(",", "")
+    # total supply
+    start_pos = data.find("Total Supply:")
+    if (start_pos < 0):
+        return {}
+    start_pos = data.find("title=\'", start_pos) + len("title=\'")
+    if (start_pos < len("title=\'")):
+        return {}
+    end_pos = data.find("\'", start_pos)
+    if (end_pos < 0):
+        return {}
+    total_supply = data[start_pos:end_pos].replace(' ', '')
     # burned amount
     url = "https://bscscan.com/readContract?m=normal&a=" + contract_address + "&v=" + contract_address
     response = requests.request("GET", url)
@@ -68,10 +79,11 @@ def get_token_status(contract_address):
     if (start_pos < 1):
         return {}
     burn_fee = Decimal(data[start_pos:end_pos].strip('\n ')) / (Decimal(10) ** 9) # convert to gwei unit
-    
-    print(market_cap, ',', holders, ',', burn_fee)
+
+    print(market_cap, ',', holders, ',', burn_fee, ',', total_supply)
     return {
         "market_cap": market_cap,
+        "total_supply": total_supply,
         "holders": holders,
         "burned": f"{burn_fee:,}"
     }
@@ -99,6 +111,7 @@ async def summary():
     status = get_token_status(CONTRACT_ADDRESS)
     print(status)
     status.update({
+        "last": get_current_price("the-real-golden-inu"),
         "timestamp": datetime.datetime.now()
     })
     return status
