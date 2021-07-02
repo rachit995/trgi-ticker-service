@@ -89,6 +89,7 @@ def get_token_status(contract_address):
     }
 
 @app.get("/")
+@cross_origin()
 async def root():
     return {
         "name": "trgi-ticker-service",
@@ -98,6 +99,7 @@ async def root():
 
 
 @app.get("/ticker")
+@cross_origin()
 async def ticker():
     current = get_current_price("the-real-golden-inu")
     return {
@@ -107,6 +109,7 @@ async def ticker():
 
 
 @app.get("/summary")
+@cross_origin()
 async def summary():
     status = get_token_status(CONTRACT_ADDRESS)
     print(status)
