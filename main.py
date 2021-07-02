@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 import requests
 import json
 import socket
@@ -13,6 +14,17 @@ CONTRACT_ADDRESS = "0xb5db7640182042a150ccdb386291f08f23b77a96"
 
 app = FastAPI()
 
+origins = [
+    "https://trgi-ticker-service.herokuapp.com",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=['*'],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 def get_current_price(coin, wrt="usd"):
     # url = "https://api.coingecko.com/api/v3/coins/" + coin
@@ -89,7 +101,6 @@ def get_token_status(contract_address):
     }
 
 @app.get("/")
-@cross_origin()
 async def root():
     return {
         "name": "trgi-ticker-service",
@@ -99,7 +110,6 @@ async def root():
 
 
 @app.get("/ticker")
-@cross_origin()
 async def ticker():
     current = get_current_price("the-real-golden-inu")
     return {
@@ -109,7 +119,6 @@ async def ticker():
 
 
 @app.get("/summary")
-@cross_origin()
 async def summary():
     status = get_token_status(CONTRACT_ADDRESS)
     print(status)
